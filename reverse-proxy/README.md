@@ -137,3 +137,28 @@ __How to deploy it on your own account:__
     The application container does not have a publically accessible port, so there is no way for a vulnerability scanning tool to directly access the application. Instead all traffic will be sent to NGINX, and NGINX is configured to only forward traffic to your application container, only if it follows specific whitelisted rules.
 
 7. The final step is to deploy the task as a service, behind [a load balancer which is configured to send traffic to the NGINX container](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-application-load-balancer.html).
+
+
+
+Docker-compose
+
+Using the `docker-compose up` command, then you are able to test with  curl 0.0.0.0/api/lorem-ipsum or  curl 0.0.0.0/api/health-check
+( these api endpoitns are defined in the app's server.js )
+
+With docker-compose and curl, the nginx will be reached with 0.0.0.0 over port  80, and in the nginx configuration it give that location /api  will be rerouted to http://app:3000
+There is no rewrite rule in the nginx configuraion, /api and everything with it will be send to the app on port 3000.
+The app listens for these API requests:
+/api/health-check
+and
+/api/lorum-ipsum
+
+So curl 0.0.0.0/api/health-check for example will be discoverd by the nginx revers proxy and because of the /api location entry in it, the "/api/health-check" path will be sent to http://app:3000.
+
+
+```
+$ docker ps
+CONTAINER ID        IMAGE                 COMMAND                  CREATED             STATUS              PORTS                NAMES
+4f00ac4fb8e4        reverse-proxy_nginx   "nginx -g 'daemon of…"   4 hours ago         Up 4 hours          0.0.0.0:80->80/tcp   reverse-proxy_nginx_1
+55b07227a88f        reverse-proxy_app     "node server.js"         4 hours ago         Up 4 hours          3000/tcp             reverse-proxy_app_1
+```
+
